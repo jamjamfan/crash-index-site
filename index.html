@@ -24,6 +24,11 @@
   .b-yellow { background:rgba(202,162,39,.15); color:var(--gold2); border:1px solid var(--gold); }
   .b-red { background:rgba(220,60,60,.15); color:#f87171; border:1px solid #f87171; }
   .asof { color:var(--mut); font-size:13px; }
+  .tabs { display:flex; gap:10px; justify-content:center; margin-top:16px; }
+  .tab { padding:9px 26px; border-radius:999px; border:1px solid var(--line); background:var(--card); color:var(--mut); font-size:15px; cursor:pointer; font-family:inherit; }
+  .tab.active { border-color:var(--gold); color:var(--gold2); background:rgba(201,162,39,.1); font-weight:700; }
+  .valcard { background:var(--card); border:1px solid var(--gold); border-radius:12px; padding:22px; }
+  .valcard .big { font-size:30px; font-weight:800; color:#f87171; }
   section { padding:34px 0; border-top:1px solid var(--line); }
   h2 { font-size:22px; margin-bottom:6px; }
   h2 + p.desc, .desc { color:var(--mut); font-size:14px; margin-bottom:18px; }
@@ -55,7 +60,12 @@
 
   <div class="hero">
     <h1>財技股災指數 v1.0</h1>
-    <p class="sub">30 年回測 · 六條腿等權合成 · 市場壓力指數</p>
+    <p class="sub">30 年回測 · 每日更新的市場壓力指數</p>
+    <div class="tabs">
+      <button class="tab active" id="tabSix" onclick="setView('six')">六腿綜合版</button>
+      <button class="tab" id="tabVal" onclick="setView('val')">純估值版</button>
+    </div>
+    <p class="sub" id="viewDesc" style="margin-top:10px">六條腿等權合成：估值、曲線、信用、恐慌、勞動、政策</p>
     <div class="bignum" id="nowNum">–</div>
     <div><span class="badge b-green" id="nowBadge">載入中</span></div>
     <div class="asof" id="asof">數據截至 – · 每日更新</div>
@@ -68,8 +78,8 @@
   </section>
 
   <section>
-    <h2>今日六條腿</h2>
-    <p class="desc">每條腿係過去 10 年滾動 z-score：正數＝比歷史偏危險，負數＝偏安全。</p>
+    <h2 id="legsTitle">今日六條腿</h2>
+    <p class="desc" id="legsDesc">每條腿係過去 10 年滾動 z-score：正數＝比歷史偏危險，負數＝偏安全。</p>
     <div class="legs" id="legs"></div>
   </section>
 
@@ -77,11 +87,11 @@
     <h2>四次股災：事前睇唔睇到？</h2>
     <p class="desc">誠實回測，唔靚嘅結果照寫。</p>
     <table>
-      <tr><th>股災</th><th>峰值指數</th><th>邊條腿叫</th><th>結論</th></tr>
-      <tr><td>科網爆破 (2000-03)</td><td>58</td><td>估值 +2.4σ、曲線 +1.8σ</td><td>勉強睇到</td></tr>
-      <tr><td>金融海嘯 (2007-10)</td><td>51</td><td>六條腿全部中性</td><td><b style="color:#f87171">完全睇唔到</b></td></tr>
-      <tr><td>疫情股災 (2020-02)</td><td>62</td><td>恐慌 +4.0σ（VIX 已升）</td><td>部分睇到</td></tr>
-      <tr><td>2022 熊市 (2021-12)</td><td>51</td><td>得估值 +2.5σ</td><td>唔夠入閘</td></tr>
+      <tr><th>股災</th><th>六腿版</th><th>純估值版</th><th>結論</th></tr>
+      <tr><td>科網爆破 (2000-03)</td><td>58</td><td><b style="color:var(--gold2)">74</b></td><td>兩個版都捉到（估值 +2.4σ）</td></tr>
+      <tr><td>金融海嘯 (2007-10)</td><td>51</td><td>52</td><td><b style="color:#f87171">兩個版一齊 miss</b>——唔係估值危機</td></tr>
+      <tr><td>疫情股災 (2020-02)</td><td>62</td><td>61</td><td>兩個版都叫（VIX +4.0σ）</td></tr>
+      <tr><td>2022 熊市 (2021-12)</td><td>51</td><td><b style="color:var(--gold2)">75</b></td><td>得純估值版叫到</td></tr>
     </table>
     <div class="warn">重點：條指數係<b>壓力確認器</b>，唔係<b>預測器</b>——佢跟住股災一齊升，唔係之前升。2008 年佢完全無聲，因為嗰次唔係估值危機，係信貸危機。</div>
   </section>
@@ -89,7 +99,7 @@
   <section>
     <h2>公式（全部公開）</h2>
     <div class="formula">
-      <p><code>股災指數 = 50 + 10 × mean(z₁…z₆)</code></p>
+      <p><code>股災指數 = 50 + 10 × mean(z₁…z₆)</code>　<code>純估值版 = 50 + 10 × z_估值</code></p>
       <p style="margin-top:10px">六條腿：<b>估值</b> Wilshire 5000 ÷ GDP（巴菲特式）｜<b>曲線</b> −(10年−2年利差)｜<b>信用</b> Moody's Baa−Aaa 利差｜<b>恐慌</b> VIX｜<b>勞動</b> Sahm rule｜<b>政策</b> 聯邦基金利率。每條腿用過去 120 個月 trailing z-score，無用未來數據；GDP 滯後一季、失業率滯後一個月。權重事前定死等權，睇完結果冇調過。</p>
       <p style="margin-top:10px;color:var(--mut)">數據：FRED、yfinance，1994–2026 月頻。</p>
     </div>
@@ -101,6 +111,7 @@
       <li><b>佢係確認器，唔係預測器。</b>用 60 分做預警線，四次股災三次唔合格；但爆發嗰陣佢叫得好大聲（2008-10：65、2020-03：66）。</li>
       <li><b>2007 年嘅教訓：唔係每次股災都係估值危機。</b>一個估值＋宏觀為主嘅指數，量唔到信貸體系幾時斷裂。</li>
       <li><b>最有價值嘅係估值腿。</b>四次入面三次事前偏高（2000 年 +2.4、2021 年 +2.5、而家 +2.1）。佢唔會話你知幾時跌，但係最誠實嘅慢腿。</li>
+      <li><b>純估值版係好嘅溫度計，垃圾嘅時鐘。</b>三十年有 55% 時間高於 60——跟佢做 timing 會錯過晒啲大牛市。用法：判斷脆弱度，唔係判斷時機。</li>
     </ul>
   </section>
 
@@ -121,63 +132,102 @@ const LEG_META = {
 };
 const RECESS = [['1990-07','1991-03'],['2001-03','2001-11'],['2007-12','2009-06'],['2020-02','2020-04']];
 const MARKS = {'2000-03':'科網頂','2007-10':'海嘯前頂','2020-02':'疫情前頂','2021-12':'2022熊市前頂'};
+const PEAK_SIX = {'2000-03':58,'2007-10':51,'2020-02':62,'2021-12':51};
+const PEAK_VAL = {'2000-03':74,'2007-10':52,'2020-02':61,'2021-12':75};
+let VIEW='six', DD=null, chart=null;
 
-fetch('data.json').then(r=>r.json()).then(D=>{
-  // hero
-  const now = D.now;
-  document.getElementById('nowNum').textContent = now.toFixed(0);
-  const b = document.getElementById('nowBadge');
-  if(now>=65){ b.textContent='高危'; b.className='badge b-red'; }
-  else if(now>=55){ b.textContent='偏高'; b.className='badge b-yellow'; }
-  else { b.textContent='中性'; b.className='badge b-green'; }
-  document.getElementById('asof').textContent = '數據截至 '+D.asof+' · 每日更新';
-  // legs
-  const el = document.getElementById('legs');
-  for(const k of Object.keys(LEG_META)){
-    const z = D.legs[k], m = LEG_META[k];
-    const pct = Math.min(Math.abs(z)/3*50,50);
-    const col = z>=0 ? '#f87171' : '#4ade80';
-    const side = z>=0 ? 'left:50%' : 'right:50%';
-    const w = 'width:'+pct+'%';
-    el.innerHTML += `<div class="leg"><h3>${m.n}</h3><div class="logic">${m.l}</div>
-      <div class="zv" style="color:${col}">${z>=0?'+':''}${z.toFixed(2)}σ</div>
-      <div class="bar"><i style="${side};${w};background:${col}"></i><i style="left:50%;width:1px;background:#555"></i></div></div>`;
+function badgeFor(v){ return v>=65?['高危','badge b-red']:v>=55?['偏高','badge b-yellow']:['中性','badge b-green']; }
+function viewNow(){ return VIEW==='six' ? DD.now : DD.monthly[DD.monthly.length-1].val; }
+
+function setView(v){
+  VIEW=v;
+  document.getElementById('tabSix').className='tab'+(v==='six'?' active':'');
+  document.getElementById('tabVal').className='tab'+(v==='val'?' active':'');
+  if(!DD) return;
+  renderHero(); renderLegs(); renderChart();
+}
+
+function renderHero(){
+  const now=viewNow();
+  document.getElementById('nowNum').textContent=now.toFixed(0);
+  const t=badgeFor(now), b=document.getElementById('nowBadge');
+  b.textContent=t[0]; b.className=t[1];
+  document.getElementById('asof').textContent='數據截至 '+DD.asof+' · 每日更新';
+  document.getElementById('viewDesc').textContent = VIEW==='six'
+    ? '六條腿等權合成：估值、曲線、信用、恐慌、勞動、政策'
+    : '單腿：估值（Wilshire 5000 ÷ GDP）｜好嘅溫度計，垃圾嘅時鐘';
+}
+
+function legCard(k){
+  const z=DD.legs[k], m=LEG_META[k];
+  const pct=Math.min(Math.abs(z)/3*50,50), col=z>=0?'#f87171':'#4ade80', side=z>=0?'left:50%':'right:50%';
+  return `<div class="leg"><h3>${m.n}</h3><div class="logic">${m.l}</div>
+    <div class="zv" style="color:${col}">${z>=0?'+':''}${z.toFixed(2)}σ</div>
+    <div class="bar"><i style="${side};width:${pct}%;background:${col}"></i><i style="left:50%;width:1px;background:#555"></i></div></div>`;
+}
+
+function renderLegs(){
+  const el=document.getElementById('legs');
+  if(VIEW==='six'){
+    document.getElementById('legsTitle').textContent='今日六條腿';
+    document.getElementById('legsDesc').textContent='每條腿係過去 10 年滾動 z-score：正數＝比歷史偏危險，負數＝偏安全。';
+    el.className='legs';
+    el.innerHTML=Object.keys(LEG_META).map(legCard).join('');
+  } else {
+    document.getElementById('legsTitle').textContent='純估值版：得一條腿';
+    document.getElementById('legsDesc').textContent='淨係睇估值（Wilshire 5000 ÷ GDP，過去 10 年滾動 z-score）。';
+    const z=DD.legs.valuation, now=viewNow(), t=badgeFor(now);
+    el.className='';
+    el.innerHTML=`<div class="valcard"><h3>估值腿</h3>
+      <p style="color:var(--mut);font-size:13px;margin:6px 0 12px">Wilshire 5000 ÷ GDP，愈貴愈危險</p>
+      <div class="big">${z>=0?'+':''}${z.toFixed(2)}σ → 指數 ${now.toFixed(0)}（${t[0]}）</div>
+      <p style="margin-top:12px;font-size:14px">過去三十年，純估值版有 <b>55%</b> 時間高於 60。佢識話你知個市有幾貴、幾脆弱，但唔識話你知幾時跌——1995 年佢已經話危險，科網頂要 2000 年先嚟。用法：判斷脆弱度，唔係判斷時機。</p></div>`;
   }
-  // chart
-  const idx = D.monthly.map(p=>[p.d, p.v]);
-  const spx = D.monthly.map(p=>[p.d, p.s]);
-  const chart = echarts.init(document.getElementById('chart'));
-  chart.setOption({
+}
+
+function chartOption(){
+  const isSix=VIEW==='six', peaks=isSix?PEAK_SIX:PEAK_VAL;
+  const idx=DD.monthly.map(p=>[p.d, isSix?p.v:p.val]);
+  const spx=DD.monthly.map(p=>[p.d, p.s]);
+  return {
     backgroundColor:'transparent',
     tooltip:{trigger:'axis', backgroundColor:'#1c1c1c', borderColor:'#c9a227', textStyle:{color:'#e8e8e8'},
       formatter:ps=>{ let h=ps[0].axisValue+'<br/>'; ps.forEach(p=>{ h+=p.marker+' '+p.seriesName+': <b>'+p.value[1]+'</b><br/>'; }); return h; }},
     legend:{textStyle:{color:'#9a9a9a'}, top:0},
     grid:{left:48,right:48,top:40,bottom:30},
     dataZoom:[{type:'inside'},{type:'slider', bottom:0, textStyle:{color:'#9a9a9a'}}],
-    xAxis:{type:'category', data:D.monthly.map(p=>p.d),
+    xAxis:{type:'category', data:DD.monthly.map(p=>p.d),
       axisLabel:{color:'#9a9a9a', formatter:v=>v.slice(0,4), interval:23}},
     yAxis:[
-      {type:'value', min:35, max:80, name:'股災指數', nameTextStyle:{color:'#9a9a9a'}, axisLabel:{color:'#c9a227'},
+      {type:'value', min:30, max:85, name:isSix?'股災指數（六腿）':'純估值版', nameTextStyle:{color:'#9a9a9a'}, axisLabel:{color:'#c9a227'},
        splitLine:{lineStyle:{color:'#222'}}},
-      {type:'log', name:'S&P 500', nameTextStyle:{color:'#9a9a9a'}, axisLabel:{color:'#7aa2cc'},
-       splitLine:{show:false}}
+      {type:'log', name:'S&P 500', nameTextStyle:{color:'#9a9a9a'}, axisLabel:{color:'#7aa2cc'}, splitLine:{show:false}}
     ],
     series:[
-      {name:'股災指數', type:'line', data:idx, yAxisIndex:0, showSymbol:false,
+      {name:isSix?'股災指數（六腿）':'純估值版', type:'line', data:idx, yAxisIndex:0, showSymbol:false,
        lineStyle:{color:'#c9a227', width:2}, emphasis:{focus:'series'},
        markLine:{silent:true, symbol:'none', label:{color:'#9a9a9a', formatter:'{c}'},
          lineStyle:{color:'#555', type:'dashed'},
          data:[{yAxis:50,label:{formatter:'50 中性'}},{yAxis:60,lineStyle:{color:'#a33',type:'dotted'},label:{formatter:'60 警戒',color:'#f87171'}}]},
        markArea:{silent:true, itemStyle:{color:'rgba(255,255,255,0.05)'},
-         data:RECESS.map(r=>[{xAxis:r[0]},{xAxis:r[1]}])}},
+         data:RECESS.map(r=>[{xAxis:r[0]},{xAxis:r[1]}])},
+       markPoint:{symbol:'pin', symbolSize:46, itemStyle:{color:'#c9a227'},
+         label:{color:'#0d0d0d', fontSize:10, formatter:p=>p.name+' '+p.value},
+         data:Object.keys(MARKS).map(k=>({name:MARKS[k], value:peaks[k], coord:[k, peaks[k]]}))}},
       {name:'S&P 500', type:'line', data:spx, yAxisIndex:1, showSymbol:false,
-       lineStyle:{color:'#5b7fa6', width:1.5, opacity:.9},
-       markPoint:{symbol:'pin', symbolSize:36, itemStyle:{color:'#c9a227'},
-         label:{color:'#0d0d0d', fontSize:10},
-         data:Object.keys(MARKS).map(k=>({coord:[k, D.monthly.find(p=>p.d===k)?.s], value:MARKS[k]}))}}
+       lineStyle:{color:'#5b7fa6', width:1.5, opacity:.9}}
     ]
-  });
+  };
+}
+
+function renderChart(){
+  if(!chart) chart=echarts.init(document.getElementById('chart'));
+  chart.setOption(chartOption(), true);
   window.addEventListener('resize', ()=>chart.resize());
+}
+
+fetch('data.json').then(r=>r.json()).then(D=>{
+  DD=D; renderHero(); renderLegs(); renderChart();
 }).catch(e=>{ document.getElementById('nowNum').textContent='—'; });
 </script>
 </body>
