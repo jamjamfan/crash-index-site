@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-HK">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>財技股災指數 v1.0</title>
+<meta name="description" content="財技股災指數：30年回測、每日更新的市場壓力指數。純研究教育，唔係投資建議。">
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>
+<style>
+  :root { --gold:#c9a227; --gold2:#f0d878; --bg:#0d0d0d; --card:#161616; --line:#2a2a2a; --txt:#e8e8e8; --mut:#9a9a9a; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { background:var(--bg); color:var(--txt); font-family:"Noto Sans TC","PingFang HK","Microsoft JhengHei",system-ui,sans-serif; line-height:1.7; }
+  .wrap { max-width:1080px; margin:0 auto; padding:0 20px; }
+  header.top { border-bottom:1px solid var(--line); padding:18px 0; display:flex; justify-content:space-between; align-items:center; }
+  header.top .brand { font-size:20px; font-weight:700; }
+  header.top .brand span { background:linear-gradient(135deg,var(--gold),var(--gold2)); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .pill { font-size:12px; border:1px solid var(--gold); color:var(--gold2); border-radius:999px; padding:4px 14px; }
+  .hero { text-align:center; padding:56px 0 40px; }
+  .hero h1 { font-size:clamp(30px,5vw,46px); font-weight:800; background:linear-gradient(135deg,var(--gold),var(--gold2)); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .hero p.sub { color:var(--mut); margin-top:8px; }
+  .bignum { font-size:clamp(72px,14vw,120px); font-weight:800; margin:18px 0 4px; font-variant-numeric:tabular-nums; }
+  .badge { display:inline-block; font-size:15px; font-weight:700; border-radius:999px; padding:6px 22px; margin:6px 0 10px; }
+  .b-green { background:rgba(46,160,67,.15); color:#4ade80; border:1px solid #4ade80; }
+  .b-yellow { background:rgba(202,162,39,.15); color:var(--gold2); border:1px solid var(--gold); }
+  .b-red { background:rgba(220,60,60,.15); color:#f87171; border:1px solid #f87171; }
+  .asof { color:var(--mut); font-size:13px; }
+  section { padding:34px 0; border-top:1px solid var(--line); }
+  h2 { font-size:22px; margin-bottom:6px; }
+  h2 + p.desc, .desc { color:var(--mut); font-size:14px; margin-bottom:18px; }
+  #chart { width:100%; height:440px; }
+  .legs { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:12px; }
+  .leg { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:16px; }
+  .leg h3 { font-size:15px; }
+  .leg .logic { font-size:12px; color:var(--mut); margin:4px 0 10px; min-height:34px; }
+  .leg .zv { font-size:24px; font-weight:700; font-variant-numeric:tabular-nums; }
+  .bar { height:6px; background:#2a2a2a; border-radius:3px; margin-top:8px; position:relative; overflow:hidden; }
+  .bar i { position:absolute; top:0; bottom:0; border-radius:3px; }
+  table { width:100%; border-collapse:collapse; font-size:14px; }
+  th, td { text-align:left; padding:10px 12px; border-bottom:1px solid var(--line); }
+  th { color:var(--gold2); font-weight:600; }
+  .formula { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:20px; font-size:14px; }
+  .formula code { color:var(--gold2); }
+  .takeaways li { margin:10px 0 10px 20px; }
+  footer { border-top:1px solid var(--line); padding:26px 0 40px; color:var(--mut); font-size:13px; }
+  .warn { border:1px solid #f87171; background:rgba(220,60,60,.07); border-radius:12px; padding:16px 20px; font-size:14px; margin-top:14px; }
+  @media (max-width:640px){ #chart{height:320px;} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand"><span>財技</span>股災指數</div>
+    <div class="pill">每日更新</div>
+  </header>
+
+  <div class="hero">
+    <h1>財技股災指數 v1.0</h1>
+    <p class="sub">30 年回測 · 六條腿等權合成 · 市場壓力指數</p>
+    <div class="bignum" id="nowNum">–</div>
+    <div><span class="badge b-green" id="nowBadge">載入中</span></div>
+    <div class="asof" id="asof">數據截至 – · 每日更新</div>
+  </div>
+
+  <section>
+    <h2>30 年走勢</h2>
+    <p class="desc">金線：股災指數（50＝中性）｜灰線：S&P 500（對數軸）｜灰底：美國衰退期。可拖拽縮放，hover 睇數值。</p>
+    <div id="chart"></div>
+  </section>
+
+  <section>
+    <h2>今日六條腿</h2>
+    <p class="desc">每條腿係過去 10 年滾動 z-score：正數＝比歷史偏危險，負數＝偏安全。</p>
+    <div class="legs" id="legs"></div>
+  </section>
+
+  <section>
+    <h2>四次股災：事前睇唔睇到？</h2>
+    <p class="desc">誠實回測，唔靚嘅結果照寫。</p>
+    <table>
+      <tr><th>股災</th><th>峰值指數</th><th>邊條腿叫</th><th>結論</th></tr>
+      <tr><td>科網爆破 (2000-03)</td><td>58</td><td>估值 +2.4σ、曲線 +1.8σ</td><td>勉強睇到</td></tr>
+      <tr><td>金融海嘯 (2007-10)</td><td>51</td><td>六條腿全部中性</td><td><b style="color:#f87171">完全睇唔到</b></td></tr>
+      <tr><td>疫情股災 (2020-02)</td><td>62</td><td>恐慌 +4.0σ（VIX 已升）</td><td>部分睇到</td></tr>
+      <tr><td>2022 熊市 (2021-12)</td><td>51</td><td>得估值 +2.5σ</td><td>唔夠入閘</td></tr>
+    </table>
+    <div class="warn">重點：條指數係<b>壓力確認器</b>，唔係<b>預測器</b>——佢跟住股災一齊升，唔係之前升。2008 年佢完全無聲，因為嗰次唔係估值危機，係信貸危機。</div>
+  </section>
+
+  <section>
+    <h2>公式（全部公開）</h2>
+    <div class="formula">
+      <p><code>股災指數 = 50 + 10 × mean(z₁…z₆)</code></p>
+      <p style="margin-top:10px">六條腿：<b>估值</b> Wilshire 5000 ÷ GDP（巴菲特式）｜<b>曲線</b> −(10年−2年利差)｜<b>信用</b> Moody's Baa−Aaa 利差｜<b>恐慌</b> VIX｜<b>勞動</b> Sahm rule｜<b>政策</b> 聯邦基金利率。每條腿用過去 120 個月 trailing z-score，無用未來數據；GDP 滯後一季、失業率滯後一個月。權重事前定死等權，睇完結果冇調過。</p>
+      <p style="margin-top:10px;color:var(--mut)">數據：FRED、yfinance，1994–2026 月頻。</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>三個誠實結論</h2>
+    <ul class="takeaways">
+      <li><b>佢係確認器，唔係預測器。</b>用 60 分做預警線，四次股災三次唔合格；但爆發嗰陣佢叫得好大聲（2008-10：65、2020-03：66）。</li>
+      <li><b>2007 年嘅教訓：唔係每次股災都係估值危機。</b>一個估值＋宏觀為主嘅指數，量唔到信貸體系幾時斷裂。</li>
+      <li><b>最有價值嘅係估值腿。</b>四次入面三次事前偏高（2000 年 +2.4、2021 年 +2.5、而家 +2.1）。佢唔會話你知幾時跌，但係最誠實嘅慢腿。</li>
+    </ul>
+  </section>
+
+  <footer>
+    <p><b>純研究教育，唔係投資建議。</b>本指數為研究原型（v1.0），不構成任何買入／沽出指示。任何人話「條指數預測到下次股災」，請佢睇上面張對照表。</p>
+    <p style="margin-top:8px">數據來源：FRED、yfinance ｜ 維護：知金系統 Back Test Lab</p>
+  </footer>
+</div>
+
+<script>
+const LEG_META = {
+  valuation:{n:'估值', l:'Wilshire 5000 ÷ GDP，愈貴愈危險'},
+  curve:{n:'曲線', l:'10年−2年利差倒掛＝危險'},
+  credit:{n:'信用', l:"Moody's Baa−Aaa 利差擴＝市場驚"},
+  fear:{n:'恐慌', l:'VIX 愈高愈恐慌'},
+  labor:{n:'勞動', l:'Sahm rule：失業率轉弱'},
+  policy:{n:'政策', l:'聯邦基金利率愈高愈緊'}
+};
+const RECESS = [['1990-07','1991-03'],['2001-03','2001-11'],['2007-12','2009-06'],['2020-02','2020-04']];
+const MARKS = {'2000-03':'科網頂','2007-10':'海嘯前頂','2020-02':'疫情前頂','2021-12':'2022熊市前頂'};
+
+fetch('data.json').then(r=>r.json()).then(D=>{
+  // hero
+  const now = D.now;
+  document.getElementById('nowNum').textContent = now.toFixed(0);
+  const b = document.getElementById('nowBadge');
+  if(now>=65){ b.textContent='高危'; b.className='badge b-red'; }
+  else if(now>=55){ b.textContent='偏高'; b.className='badge b-yellow'; }
+  else { b.textContent='中性'; b.className='badge b-green'; }
+  document.getElementById('asof').textContent = '數據截至 '+D.asof+' · 每日更新';
+  // legs
+  const el = document.getElementById('legs');
+  for(const k of Object.keys(LEG_META)){
+    const z = D.legs[k], m = LEG_META[k];
+    const pct = Math.min(Math.abs(z)/3*50,50);
+    const col = z>=0 ? '#f87171' : '#4ade80';
+    const side = z>=0 ? 'left:50%' : 'right:50%';
+    const w = 'width:'+pct+'%';
+    el.innerHTML += `<div class="leg"><h3>${m.n}</h3><div class="logic">${m.l}</div>
+      <div class="zv" style="color:${col}">${z>=0?'+':''}${z.toFixed(2)}σ</div>
+      <div class="bar"><i style="${side};${w};background:${col}"></i><i style="left:50%;width:1px;background:#555"></i></div></div>`;
+  }
+  // chart
+  const idx = D.monthly.map(p=>[p.d, p.v]);
+  const spx = D.monthly.map(p=>[p.d, p.s]);
+  const chart = echarts.init(document.getElementById('chart'));
+  chart.setOption({
+    backgroundColor:'transparent',
+    tooltip:{trigger:'axis', backgroundColor:'#1c1c1c', borderColor:'#c9a227', textStyle:{color:'#e8e8e8'},
+      formatter:ps=>{ let h=ps[0].axisValue+'<br/>'; ps.forEach(p=>{ h+=p.marker+' '+p.seriesName+': <b>'+p.value[1]+'</b><br/>'; }); return h; }},
+    legend:{textStyle:{color:'#9a9a9a'}, top:0},
+    grid:{left:48,right:48,top:40,bottom:30},
+    dataZoom:[{type:'inside'},{type:'slider', bottom:0, textStyle:{color:'#9a9a9a'}}],
+    xAxis:{type:'category', data:D.monthly.map(p=>p.d),
+      axisLabel:{color:'#9a9a9a', formatter:v=>v.slice(0,4), interval:23}},
+    yAxis:[
+      {type:'value', min:35, max:80, name:'股災指數', nameTextStyle:{color:'#9a9a9a'}, axisLabel:{color:'#c9a227'},
+       splitLine:{lineStyle:{color:'#222'}}},
+      {type:'log', name:'S&P 500', nameTextStyle:{color:'#9a9a9a'}, axisLabel:{color:'#7aa2cc'},
+       splitLine:{show:false}}
+    ],
+    series:[
+      {name:'股災指數', type:'line', data:idx, yAxisIndex:0, showSymbol:false,
+       lineStyle:{color:'#c9a227', width:2}, emphasis:{focus:'series'},
+       markLine:{silent:true, symbol:'none', label:{color:'#9a9a9a', formatter:'{c}'},
+         lineStyle:{color:'#555', type:'dashed'},
+         data:[{yAxis:50,label:{formatter:'50 中性'}},{yAxis:60,lineStyle:{color:'#a33',type:'dotted'},label:{formatter:'60 警戒',color:'#f87171'}}]},
+       markArea:{silent:true, itemStyle:{color:'rgba(255,255,255,0.05)'},
+         data:RECESS.map(r=>[{xAxis:r[0]},{xAxis:r[1]}])}},
+      {name:'S&P 500', type:'line', data:spx, yAxisIndex:1, showSymbol:false,
+       lineStyle:{color:'#5b7fa6', width:1.5, opacity:.9},
+       markPoint:{symbol:'pin', symbolSize:36, itemStyle:{color:'#c9a227'},
+         label:{color:'#0d0d0d', fontSize:10},
+         data:Object.keys(MARKS).map(k=>({coord:[k, D.monthly.find(p=>p.d===k)?.s], value:MARKS[k]}))}}
+    ]
+  });
+  window.addEventListener('resize', ()=>chart.resize());
+}).catch(e=>{ document.getElementById('nowNum').textContent='—'; });
+</script>
+</body>
+</html>
