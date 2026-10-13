@@ -101,6 +101,20 @@
   </section>
 
   <section>
+    <h2>波幅結構（V燈） <span class="pill">五燈模型 · 日頻</span></h2>
+    <p class="desc">五燈模型入面唯一真正快嘅燈：回測四次事件三次有份，2020-02 曾達 94 分。分數愈高，市場恐慌定價愈勁。</p>
+    <div class="dual">
+      <div class="duocard"><div class="dlabel">V分數（0–100）</div><div class="dnum" id="vScoreNum" style="color:var(--gold2)">–</div></div>
+      <div class="duocard"><div class="dlabel">期限結構</div><div class="dnum" id="vStructNum" style="font-size:34px">–</div></div>
+    </div>
+    <div style="text-align:center"><span class="badge b-green" id="vBadge">載入中</span></div>
+    <div class="legs" id="vnums" style="margin-top:14px"></div>
+    <div id="vchart" style="width:100%;height:300px;margin-top:6px"></div>
+    <p class="desc" id="vInterp" style="margin-top:12px"></p>
+    <p class="desc">五燈模型之V燈 · 研究版（回測：唯一快燈，2020-02 曾達 94 分）｜knots 原裝未郁｜純研究教育，唔係投資建議。</p>
+  </section>
+
+  <section>
     <h2>四次股災：事前睇唔睇到？</h2>
     <p class="desc">誠實回測，唔靚嘅結果照寫。</p>
     <table>
@@ -151,7 +165,7 @@ const RECESS = [['1990-07','1991-03'],['2001-03','2001-11'],['2007-12','2009-06'
 const MARKS = {'2000-03':'科網頂','2007-10':'海嘯前頂','2020-02':'疫情前頂','2021-12':'2022熊市前頂'};
 const PEAK_SIX = {'2000-03':58,'2007-10':51,'2020-02':62,'2021-12':51};
 const PEAK_VAL = {'2000-03':74,'2007-10':52,'2020-02':61,'2021-12':75};
-let VIEW='six', DD=null, chart=null;
+let VIEW='six', DD=null, chart=null, vchart=null;
 
 function badgeFor(v){ return v>=65?['高危','badge b-red']:v>=55?['偏高','badge b-yellow']:['中性','badge b-green']; }
 function viewNow(){ return VIEW==='six' ? DD.now : DD.monthly[DD.monthly.length-1].val; }
@@ -263,8 +277,43 @@ function renderTriggers(){
     +(T.unknown_count?'（'+T.unknown_count+'個觸發器數據缺失：'+T.unknown_ids.join('、')+'）':'');
 }
 
+function renderVlight(){
+  const V=DD.vlight_data, box=document.getElementById('vnums');
+  if(!V){ box.innerHTML='<p class="desc">V燈數據載入中…</p>'; return; }
+  const sc=V.v_score;
+  document.getElementById('vScoreNum').textContent=sc!=null?Number(sc).toFixed(1):'–';
+  document.getElementById('vStructNum').textContent=(V.status_emoji||'')+' '+(V.ratio!=null?Number(V.ratio).toFixed(3):'–');
+  const b=document.getElementById('vBadge');
+  b.textContent=(V.status_emoji||'')+' '+(V.status_label||'');
+  b.className='badge '+(V.status==='DEEP_BACKWARDATION'?'b-red':V.status==='BACKWARDATION'?'b-yellow':'b-green');
+  const cards=[
+    ['VIX 收市', V.vix!=null?Number(V.vix).toFixed(2):'–', 'knot：15→0／20→35／30→70／45→100'],
+    ['VIX3M', V.vix3m!=null?Number(V.vix3m).toFixed(2):'–', '3個月期引申波幅'],
+    ['VIX ÷ VIX3M', V.ratio!=null?Number(V.ratio).toFixed(3):'–', '>1.0 ＝ Backwardation（恐慌）']
+  ];
+  box.innerHTML=cards.map(c=>
+    `<div class="leg"><h3>${c[0]}</h3><div class="zv">${c[1]}</div><div class="logic">${c[2]}</div></div>`).join('');
+  document.getElementById('vInterp').textContent='截至 '+V.asof+' · '+V.interpretation;
+  const el=document.getElementById('vchart');
+  if(!vchart) vchart=echarts.init(el);
+  vchart.setOption({
+    backgroundColor:'transparent',
+    tooltip:{trigger:'axis', backgroundColor:'#1c1c1c', borderColor:'#c9a227', textStyle:{color:'#e8e8e8'},
+      formatter:ps=>ps[0].axisValue+'<br/>VIX/VIX3M: <b>'+ps[0].value[1]+'</b>'},
+    grid:{left:48,right:20,top:30,bottom:30},
+    xAxis:{type:'category', data:V.daily.map(p=>p.d),
+      axisLabel:{color:'#9a9a9a', formatter:v=>v.slice(0,7), interval:29}},
+    yAxis:{type:'value', min:0.7, max:1.4, axisLabel:{color:'#9a9a9a'}, splitLine:{lineStyle:{color:'#222'}}},
+    visualMap:{show:false, dimension:1, pieces:[{lt:1.0,color:'#4ade80'},{gte:1.0,color:'#f87171'}]},
+    series:[{name:'VIX/VIX3M', type:'line', data:V.daily.map(p=>[p.d,p.r]), showSymbol:false, lineStyle:{width:2},
+      markLine:{silent:true, symbol:'none', label:{color:'#9a9a9a', formatter:'1.0 Backwardation線'},
+        lineStyle:{color:'#555', type:'dashed'}, data:[{yAxis:1.0}]}}]
+  }, true);
+  window.addEventListener('resize', ()=>vchart.resize());
+}
+
 fetch('data.json').then(r=>r.json()).then(D=>{
-  DD=D; renderHero(); renderLegs(); renderTriggers(); renderChart();
+  DD=D; renderHero(); renderLegs(); renderTriggers(); renderVlight(); renderChart();
 }).catch(e=>{ document.getElementById('nowNum').textContent='—'; });
 </script>
 </body>
