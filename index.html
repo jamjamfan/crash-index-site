@@ -48,6 +48,11 @@
   .takeaways li { margin:10px 0 10px 20px; }
   footer { border-top:1px solid var(--line); padding:26px 0 40px; color:var(--mut); font-size:13px; }
   .warn { border:1px solid #f87171; background:rgba(220,60,60,.07); border-radius:12px; padding:16px 20px; font-size:14px; margin-top:14px; }
+  .dual { display:flex; gap:12px; justify-content:center; margin:20px 0 14px; flex-wrap:wrap; }
+  .duocard { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:18px 34px; text-align:center; min-width:230px; }
+  .duocard .dlabel { font-size:13px; color:var(--mut); }
+  .duocard .dnum { font-size:54px; font-weight:800; font-variant-numeric:tabular-nums; }
+  .tlight { font-size:22px; }
   @media (max-width:640px){ #chart{height:320px;} }
 </style>
 </head>
@@ -81,6 +86,18 @@
     <h2 id="legsTitle">今日六條腿</h2>
     <p class="desc" id="legsDesc">每條腿係過去 10 年滾動 z-score：正數＝比歷史偏危險，負數＝偏安全。</p>
     <div class="legs" id="legs"></div>
+  </section>
+
+  <section>
+    <h2>觸發器儀表板 <span class="pill">v1.0 · 日頻</span></h2>
+    <p class="desc">上面個指數量「脆弱度」（慢變量，月頻）；呢度量「觸發度」（快觸發，日頻）。兩個分開睇，唔撈埋。股災通常係脆弱＋觸發撞埋一齊。</p>
+    <div class="dual">
+      <div class="duocard"><div class="dlabel">脆弱度（六腿指數）</div><div class="dnum" id="vulnNum" style="color:var(--gold2)">–</div></div>
+      <div class="duocard"><div class="dlabel">觸發度（響緊幾個）</div><div class="dnum" id="trigNum" style="color:var(--gold2)">–</div></div>
+    </div>
+    <div style="text-align:center"><span class="badge b-green" id="alertBadge">載入中</span></div>
+    <div class="legs" id="triggers" style="margin-top:14px"></div>
+    <p class="desc" id="trigNote" style="margin-top:12px"></p>
   </section>
 
   <section>
@@ -226,8 +243,28 @@ function renderChart(){
   window.addEventListener('resize', ()=>chart.resize());
 }
 
+function renderTriggers(){
+  const T=DD.triggers_data, box=document.getElementById('triggers');
+  if(!T){ box.innerHTML='<p class="desc">觸發器數據載入中…</p>'; return; }
+  document.getElementById('vulnNum').textContent=T.vulnerability!=null?Number(T.vulnerability).toFixed(1):'–';
+  document.getElementById('trigNum').textContent=Number(T.trigger_score).toFixed(1)+' / 5';
+  const ab=document.getElementById('alertBadge');
+  ab.textContent=T.alert_emoji+' '+T.alert_level;
+  ab.className='badge '+(T.alert_level==='高危'?'b-red':T.alert_level==='平靜'?'b-green':'b-yellow');
+  box.innerHTML=T.triggers.map(t=>{
+    const dot=t.status==null?'⚪':t.status>=1?'🔴':t.status>=0.5?'🟡':'🟢';
+    const st=t.status==null?'未知':t.status>=1?'響緊':t.status>=0.5?'半響':'平靜';
+    return `<div class="leg"><h3><span class="tlight">${dot}</span> ${t.name}</h3>`
+      +`<div class="logic">${t.threshold}</div>`
+      +`<div style="font-size:14px">${t.value}</div>`
+      +`<div style="font-size:13px;color:var(--mut);margin-top:6px">${st}${t.note?' · '+t.note:''}</div></div>`;
+  }).join('');
+  document.getElementById('trigNote').textContent='數據截至 '+T.asof+' · 日頻更新 · 純研究教育，唔係投資建議。'
+    +(T.unknown_count?'（'+T.unknown_count+'個觸發器數據缺失：'+T.unknown_ids.join('、')+'）':'');
+}
+
 fetch('data.json').then(r=>r.json()).then(D=>{
-  DD=D; renderHero(); renderLegs(); renderChart();
+  DD=D; renderHero(); renderLegs(); renderTriggers(); renderChart();
 }).catch(e=>{ document.getElementById('nowNum').textContent='—'; });
 </script>
 </body>
