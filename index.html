@@ -48,6 +48,50 @@
   .takeaways li { margin:10px 0 10px 20px; }
   footer { border-top:1px solid var(--line); padding:26px 0 40px; color:var(--mut); font-size:13px; }
   .warn { border:1px solid #f87171; background:rgba(220,60,60,.07); border-radius:12px; padding:16px 20px; font-size:14px; margin-top:14px; }
+  /* 恐慌撈底系統 */
+  .jumplink { display:inline-block; margin-top:12px; padding:9px 26px; border-radius:999px; border:1px solid var(--gold); color:var(--gold2); font-size:15px; text-decoration:none; background:rgba(201,162,39,.08); }
+  .panic-hero { background:var(--card); border:1px solid var(--gold); border-radius:16px; padding:28px 22px; text-align:center; margin-bottom:18px; }
+  .panic-emoji { font-size:64px; line-height:1; }
+  .panic-label { font-size:26px; font-weight:800; margin:10px 0 4px; }
+  .panic-nums { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:10px; margin-top:18px; }
+  .panic-num { background:#101010; border:1px solid var(--line); border-radius:10px; padding:14px 10px; }
+  .panic-num .k { font-size:12px; color:var(--mut); }
+  .panic-num .v { font-size:22px; font-weight:800; font-variant-numeric:tabular-nums; margin-top:4px; }
+  .tiers { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:12px; margin-bottom:8px; }
+  .tier { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:18px; cursor:pointer; transition:border-color .15s; }
+  .tier:hover { border-color:var(--gold); }
+  .tier.active { border-color:var(--gold); background:rgba(201,162,39,.06); }
+  .tier .te { font-size:28px; }
+  .tier h3 { font-size:17px; margin:6px 0; }
+  .tier .trig { font-size:13px; color:var(--gold2); font-weight:600; }
+  .tier .detail { display:none; margin-top:12px; font-size:13px; color:var(--txt); border-top:1px solid var(--line); padding-top:12px; }
+  .tier.open .detail { display:block; }
+  .tier .detail li { margin:6px 0 6px 18px; }
+  .matrix { display:grid; grid-template-columns:1fr 1fr; gap:10px; max-width:640px; margin:0 auto 12px; }
+  .mcell { background:var(--card); border:2px solid var(--line); border-radius:12px; padding:18px 14px; cursor:pointer; text-align:center; transition:all .15s; }
+  .mcell:hover { border-color:var(--gold); }
+  .mcell h4 { font-size:16px; margin-bottom:4px; }
+  .mcell .ms { font-size:12px; color:var(--mut); }
+  .mcell.now { border-color:var(--gold2); background:rgba(201,162,39,.1); box-shadow:0 0 18px rgba(201,162,39,.25); }
+  .mcell .nowtag { display:inline-block; font-size:11px; background:var(--gold); color:#111; border-radius:999px; padding:2px 10px; font-weight:700; margin-top:8px; }
+  #matrixDetail, #tradeDetail { background:var(--card); border:1px solid var(--gold); border-radius:12px; padding:18px 20px; font-size:14px; max-width:640px; margin:0 auto 8px; display:none; }
+  #matrixDetail.show, #tradeDetail.show { display:block; }
+  .timeline { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:12px; margin-bottom:8px; }
+  .titem { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:16px; cursor:pointer; transition:border-color .15s; }
+  .titem:hover { border-color:var(--gold); }
+  .titem .td { font-size:13px; color:var(--gold2); font-weight:700; }
+  .titem .tt { font-size:16px; font-weight:700; margin:4px 0; }
+  .titem .tr { font-size:20px; font-weight:800; color:#4ade80; }
+  .pcharts { display:grid; grid-template-columns:1fr; gap:16px; }
+  .pcharts figure { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:14px; margin:0; }
+  .pcharts img { width:100%; height:auto; border-radius:8px; display:block; }
+  .pcharts figcaption { font-size:13px; color:var(--mut); margin-top:8px; text-align:center; }
+  @media(min-width:760px){ .pcharts { grid-template-columns:1fr 1fr; } .pcharts figure.wide { grid-column:1/-1; } }
+  .donts { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:12px; }
+  .dont { background:var(--card); border:1px solid var(--line); border-left:4px solid #f87171; border-radius:8px; padding:16px; }
+  .dont h4 { font-size:15px; color:#f87171; margin-bottom:6px; }
+  .dont p { font-size:13px; color:var(--txt); }
+  h3.sub { font-size:18px; margin:26px 0 12px; color:var(--gold2); }
   .dual { display:flex; gap:12px; justify-content:center; margin:20px 0 14px; flex-wrap:wrap; }
   .duocard { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:18px 34px; text-align:center; min-width:230px; }
   .duocard .dlabel { font-size:13px; color:var(--mut); }
@@ -70,6 +114,7 @@
       <button class="tab active" id="tabSix" onclick="setView('six')">六腿綜合版</button>
       <button class="tab" id="tabVal" onclick="setView('val')">純估值版</button>
     </div>
+    <div><a class="jumplink" href="#panic">🎣 恐慌撈底系統 v1.0（互動講解）</a></div>
     <p class="sub" id="viewDesc" style="margin-top:10px">六條腿等權合成：估值、曲線、信用、恐慌、勞動、政策</p>
     <div class="bignum" id="nowNum">–</div>
     <div><span class="badge b-green" id="nowBadge">載入中</span></div>
@@ -112,6 +157,58 @@
     <div id="vchart" style="width:100%;height:300px;margin-top:6px"></div>
     <p class="desc" id="vInterp" style="margin-top:12px"></p>
     <p class="desc">五燈模型之V燈 · 研究版（回測：唯一快燈，2020-02 曾達 94 分）｜knots 原裝未郁｜純研究教育，唔係投資建議。</p>
+  </section>
+
+  <section id="panic">
+    <h2>🎣 恐慌撈底系統 v1.0</h2>
+    <p class="desc">85% SPY 長揸唔郁，15% 現金等恐慌。撳下面啲卡逐層睇——今晚教學就係用呢頁講。</p>
+
+    <div class="panic-hero">
+      <div class="panic-emoji" id="panicEmoji">🟢</div>
+      <div class="panic-label" id="panicLabel">正常市</div>
+      <div class="asof" id="panicAsof">數據截至 – · 每日更新</div>
+      <div class="panic-nums">
+        <div class="panic-num"><div class="k">SPY</div><div class="v" id="panicSpy">–</div></div>
+        <div class="panic-num"><div class="k">離63日高位</div><div class="v" id="panicDd">–</div></div>
+        <div class="panic-num"><div class="k">VIX</div><div class="v" id="panicVix">–</div></div>
+        <div class="panic-num"><div class="k">VIX ÷ VIX3M</div><div class="v" id="panicRatio">–</div></div>
+      </div>
+      <p class="desc" id="panicRule" style="margin:14px 0 0"></p>
+    </div>
+
+    <h3 class="sub">三層入場規則（撳開睇詳情）</h3>
+    <div class="tiers" id="tiers"></div>
+
+    <h3 class="sub">2×2 Regime 矩陣（撳每格睇解說）</h3>
+    <div class="matrix" id="matrix"></div>
+    <div id="matrixDetail"></div>
+
+    <h3 class="sub">實戰記錄：10年4次出手（撳睇詳情）</h3>
+    <div class="timeline" id="timeline"></div>
+    <div id="tradeDetail"></div>
+
+    <h3 class="sub">回測圖表</h3>
+    <div class="pcharts">
+      <figure class="wide"><img src="charts/equity_curve.png" alt="10年權益曲線" loading="lazy"><figcaption>10年權益曲線：策略 $3.94M（年化15.1%）vs 純BH $4.03M（年化15.4%）</figcaption></figure>
+      <figure class="wide"><img src="charts/trades_on_spx.png" alt="四次出手標記" loading="lazy"><figcaption>四次出手：2018-02 T1、2018-12 T2＋T1（平安夜底部）、2020-03 T3</figcaption></figure>
+      <figure><img src="charts/annual_returns.png" alt="年度回報對比" loading="lazy"><figcaption>年度回報：5年贏、5年輸／打和</figcaption></figure>
+      <figure><img src="charts/tier_returns.png" alt="分層回報" loading="lazy"><figcaption>跌幅分層：跌得愈深，之後12M回報愈高</figcaption></figure>
+      <figure><img src="charts/panic_vs_grind.png" alt="恐慌vs陰跌" loading="lazy"><figcaption>核心洞察：恐慌底+11.4% vs 陰跌+0.6%</figcaption></figure>
+      <figure><img src="charts/topping_myth.png" alt="見頂迷思" loading="lazy"><figcaption>見頂估唔到：超買之後升得更多</figcaption></figure>
+      <figure><img src="charts/tranche_compare.png" alt="分注對比" loading="lazy"><figcaption>分注：勝率94%，2008年由−28.8%變+4.2%</figcaption></figure>
+      <figure><img src="charts/exit_compare.png" alt="出場對比" loading="lazy"><figcaption>出場：永唔賣最有效</figcaption></figure>
+      <figure><img src="charts/holding_period.png" alt="持有期" loading="lazy"><figcaption>持有期：愈揸得長愈賺，12個月+27.3%</figcaption></figure>
+    </div>
+
+    <h3 class="sub">四不（同等重要）</h3>
+    <div class="donts">
+      <div class="dont"><h4>✋ 唔估頂</h4><p>超買＞15%之後12個月平均+17.4%，估頂賣一半係同 momentum 對賭。</p></div>
+      <div class="dont"><h4>✋ 陰跌唔撈</h4><p>跌10%但VIX唔高，之後12個月平均+0.6%（vs 恐慌底+14.2%）。2000–2002、2022 就係咁死。</p></div>
+      <div class="dont"><h4>✋ 唔設止蝕</h4><p>止蝕位正正喺V形個底。回測：設15%止蝕將總回報由+198%斬到+112%。</p></div>
+      <div class="dont"><h4>✋ 唔買put</h4><p>Backwardation買put平均−29%／勝率10%；買正股+16.3%／91%勝率。VIX高之後多數V形反彈，put被反彈殺死。</p></div>
+    </div>
+
+    <div class="warn" style="margin-top:18px">誠實聲明：10年大牛市跑輸BH $91K（2.3%）——呢個係為「跌市有子彈」俾嘅保費。10年得4次交易，樣本少。未計稅、交易成本。純研究教育，唔係投資建議。</div>
   </section>
 
   <section>
@@ -312,8 +409,91 @@ function renderVlight(){
   window.addEventListener('resize', ()=>vchart.resize());
 }
 
+/* ===== 恐慌撈底系統 ===== */
+const TIERS = [
+  {k:'T1', e:'🟡', name:'T1 第一層', trig:'SPX離63日高位 −10% 且 VIX＞30', amt:'$50K（2注）', hist:'+14.2%（12M平均）',
+   detail:['最需要VIX確認嘅一層：唔filter得+10.8%／64%勝率，filter咗+14.2%／70%。','因為−10%可恐慌可陰跌，VIX話你知係邊隻。','加注：買入後63日內再跌10%，加$25K（每注限一次）。']},
+  {k:'T2', e:'🟠', name:'T2 第二層', trig:'SPX離63日高位 −15%', amt:'$25K（1注）', hist:'+18.0%（12M平均）',
+   detail:['跌到−15%，VIX多數已經高，唔使再filter。','兩三年先有一次。','加注規則同T1一樣。']},
+  {k:'T3', e:'🔴', name:'T3 第三層', trig:'−20% 或 VIX＞40', amt:'$25K（1注）', hist:'+23.7%（12M平均）',
+   detail:['極端恐慌：幾年先一次。','跌到−20%，VIX實爆——6次入面6次都係恐慌。','例子：2020-03-02，VIX 40，之後12個月+27.4%。']}
+];
+const CELLS = {
+  'strong-low': {t:'強牛市', s:'SPX＞200DMA ＋ VIX＜20', d:'乖乖揸住，唔好估頂。超買＞15%之後12個月平均+17.4%——估頂賣一半係同 momentum 對賭。', ex:'例子：2017、2019、2024'},
+  'strong-high': {t:'假跌', s:'SPX＞200DMA ＋ VIX≥20', d:'強勢中嘅恐慌，好快彈返。趨勢未壞，唔使驚。', ex:'例子：2018-02（VIX 33但SPX仲喺200DMA上）'},
+  'weak-low': {t:'陰跌', s:'SPX＜200DMA ＋ VIX＜20', d:'最危險：唔恐慌、冇宣洩，跌完再跌。唔好撈！跌10%但VIX唔高，之後12個月平均得+0.6%。', ex:'例子：2000–2002、2022'},
+  'weak-high': {t:'恐慌底', s:'SPX＜200DMA ＋ VIX≥20', d:'系統出動嘅時候！跌10%＋VIX＞30之後12個月平均+14.2%。分三層入，每注再跌10%加注。', ex:'例子：2008-10、2020-03'}
+};
+const TRADES = [
+  {d:'2018-02-09', t:'T1', px:229, vix:33, dd:-10.1, r12:'+6.8%', note:'Volmageddon：VIX一日爆升，恐慌性拋售。'},
+  {d:'2018-12-21', t:'T2', px:215, vix:28, dd:-15.3, r12:'+36.0%', note:'聖誕跌市：聯儲局加息＋政府停擺，市場恐慌。'},
+  {d:'2018-12-24', t:'T1', px:209, vix:30, dd:-17.0, r12:'+39.7%', note:'平安夜絕對底部——冇系統，你敢喺平安夜買？'},
+  {d:'2020-03-02', t:'T3', px:281, vix:40, dd:-12.4, r12:'+27.4%', note:'疫情爆發：VIX升穿40，中間再捱−24.8%（熔斷），但12個月後+27.4%。'}
+];
+const TIER_BADGE = {normal:['b-green','🟢 正常市'], T1:['b-yellow','🟡 T1 入場中'], T2:['b-yellow','🟠 T2 入場中'], T3:['b-red','🔴 T3 入場中'], unknown:['b-yellow','⚪ 數據缺失']};
+
+function renderPanic(){
+  const P = DD.panic_data;
+  if(!P){ document.getElementById('panicLabel').textContent='載入中'; return; }
+  document.getElementById('panicEmoji').textContent = P.tier_emoji || '⚪';
+  const tb = TIER_BADGE[P.tier] || TIER_BADGE.unknown;
+  const lbl = document.getElementById('panicLabel');
+  lbl.innerHTML = `<span class="badge ${tb[0]}">${tb[1]}</span>`;
+  document.getElementById('panicAsof').textContent = '數據截至 ' + P.asof + ' · 每日更新';
+  document.getElementById('panicSpy').textContent = P.spy != null ? '$' + P.spy : '–';
+  document.getElementById('panicDd').textContent = P.dd63 != null ? (P.dd63 > 0 ? '+' : '') + P.dd63 + '%' : '–';
+  document.getElementById('panicVix').textContent = P.vix != null ? P.vix : '–';
+  document.getElementById('panicRatio').textContent = P.ratio != null ? P.ratio : '–';
+  const rule = document.getElementById('panicRule');
+  if(P.tier === 'normal'){
+    rule.textContent = '85%長揸唔郁，15%恐慌購物金等緊。下一觸發：T1（−10%且VIX＞30）。';
+  } else {
+    rule.innerHTML = '<b style="color:var(--gold2)">訊號響緊！</b>跟三層規則入場，買咗唔賣。';
+  }
+  // 三層卡
+  document.getElementById('tiers').innerHTML = TIERS.map((t,i)=>`
+    <div class="tier${P.tier===t.k?' active':''}" onclick="this.classList.toggle('open')">
+      <div class="te">${t.e}</div><h3>${t.name}</h3><div class="trig">${t.trig}</div>
+      <div class="detail"><ul>${t.detail.map(d=>`<li>${d}</li>`).join('')}</ul>
+      <p style="margin-top:8px">動用：<b>${t.amt}</b>｜歷史：<b style="color:#4ade80">${t.hist}</b></p></div>
+    </div>`).join('');
+  // Regime 矩陣
+  const rg = P.regime || {trend:'strong', vix:'low'};
+  const cur = rg.trend + '-' + rg.vix;
+  const order = [['strong-low','strong-high'],['weak-low','weak-high']];
+  const axisT = {strong:'SPX強勢（＞200DMA）', weak:'SPX弱勢（＜200DMA）'};
+  const axisV = {low:'VIX低（＜20）', high:'VIX高（≥20）'};
+  document.getElementById('matrix').innerHTML = order.map(row => row.map(k=>{
+    const c = CELLS[k], [tr, vx] = k.split('-');
+    return `<div class="mcell${k===cur?' now':''}" onclick="showCell('${k}')">
+      <h4>${c.t}</h4><div class="ms">${axisT[tr]}<br>${axisV[vx]}</div>
+      ${k===cur?'<div><span class="nowtag">而家喺呢格</span></div>':''}</div>`;
+  }).join('')).join('');
+  showCell(cur);
+  // 時間線
+  document.getElementById('timeline').innerHTML = TRADES.map((t,i)=>`
+    <div class="titem" onclick="showTrade(${i})">
+      <div class="td">${t.d}</div><div class="tt">${t.t} @ $${t.px}</div>
+      <div class="tr">${t.r12}</div><div class="ms" style="font-size:12px;color:var(--mut)">12個月回報（撳睇詳情）</div>
+    </div>`).join('');
+}
+function showCell(k){
+  const c = CELLS[k];
+  const el = document.getElementById('matrixDetail');
+  el.innerHTML = `<h4 style="font-size:16px;margin-bottom:6px">${c.t} <span style="color:var(--mut);font-weight:400;font-size:13px">${c.s}</span></h4><p>${c.d}</p><p style="margin-top:8px;color:var(--gold2)">${c.ex}</p>`;
+  el.classList.add('show');
+}
+function showTrade(i){
+  const t = TRADES[i];
+  const el = document.getElementById('tradeDetail');
+  el.innerHTML = `<h4 style="font-size:16px;margin-bottom:6px">${t.d} · ${t.t} @ $${t.px}</h4>
+    <p>VIX ${t.vix}｜離63日高位 ${t.dd}%｜12個月後 <b style="color:#4ade80">${t.r12}</b></p>
+    <p style="margin-top:8px;color:var(--gold2)">${t.note}</p>`;
+  el.classList.add('show');
+}
+
 fetch('data.json').then(r=>r.json()).then(D=>{
-  DD=D; renderHero(); renderLegs(); renderTriggers(); renderVlight(); renderChart();
+  DD=D; renderHero(); renderLegs(); renderTriggers(); renderVlight(); renderPanic(); renderChart();
 }).catch(e=>{ document.getElementById('nowNum').textContent='—'; });
 </script>
 </body>
