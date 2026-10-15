@@ -97,6 +97,23 @@
   .duocard .dlabel { font-size:13px; color:var(--mut); }
   .duocard .dnum { font-size:54px; font-weight:800; font-variant-numeric:tabular-nums; }
   .tlight { font-size:22px; }
+  /* 每日情報 */
+  .intel-day { font-size:15px; font-weight:800; color:var(--gold2); margin:24px 0 10px; }
+  .intel-day:first-of-type { margin-top:8px; }
+  .intel-grid { display:grid; grid-template-columns:1fr; gap:12px; }
+  .intel { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:16px 18px; }
+  .intel:hover { border-color:var(--gold); }
+  .itag { display:inline-block; font-size:11px; font-weight:700; border-radius:999px; padding:2px 12px; margin-bottom:8px; }
+  .itag-guru { background:rgba(201,162,39,.12); color:var(--gold2); border:1px solid var(--gold); }
+  .itag-burry { background:rgba(96,165,250,.12); color:#93c5fd; border:1px solid #60a5fa; }
+  .itag-strat { background:rgba(74,222,128,.12); color:#4ade80; border:1px solid #4ade80; }
+  .itag-trig { background:rgba(248,113,113,.12); color:#f87171; border:1px solid #f87171; }
+  .intel h4 { font-size:16px; margin-bottom:6px; line-height:1.5; }
+  .intel p { font-size:13px; color:var(--txt); }
+  .intel .kn { font-size:12px; color:var(--gold2); margin-top:8px; }
+  .intel .src { font-size:12px; margin-top:6px; }
+  .intel .src a { color:var(--mut); }
+  @media(min-width:760px){ .intel-grid { grid-template-columns:1fr 1fr; } }
   @media (max-width:640px){ #chart{height:320px;} }
 </style>
 </head>
@@ -114,7 +131,8 @@
       <button class="tab active" id="tabSix" onclick="setView('six')">六腿綜合版</button>
       <button class="tab" id="tabVal" onclick="setView('val')">純估值版</button>
     </div>
-    <div><a class="jumplink" href="#panic">🎣 恐慌撈底系統 v1.0（互動講解）</a></div>
+    <div><a class="jumplink" href="#panic">🎣 恐慌撈底系統 v1.0（互動講解）</a>
+    <a class="jumplink" href="#intel">📰 每日情報（中文摘要）</a></div>
     <p class="sub" id="viewDesc" style="margin-top:10px">六條腿等權合成：估值、曲線、信用、恐慌、勞動、政策</p>
     <div class="bignum" id="nowNum">–</div>
     <div><span class="badge b-green" id="nowBadge">載入中</span></div>
@@ -209,6 +227,13 @@
     </div>
 
     <div class="warn" style="margin-top:18px">誠實聲明：10年大牛市跑輸BH $91K（2.3%）——呢個係為「跌市有子彈」俾嘅保費。10年得4次交易，樣本少。未計稅、交易成本。純研究教育，唔係投資建議。</div>
+  </section>
+
+  <section id="intel">
+    <h2>📰 每日情報</h2>
+    <p class="desc">每日四個掃描（大師動向／Burry追蹤／策略發現／觸發器）嘅中文摘要，最新在前。齋睇唔使撳。</p>
+    <div id="intelFeed"><p class="desc">載入中…</p></div>
+    <div class="warn" style="margin-top:18px">摘要由公開新聞／披露二次整理，唔係投資建議。原文連結如有附上，請自行核實。</div>
   </section>
 
   <section>
@@ -491,9 +516,29 @@ function showTrade(i){
     <p style="margin-top:8px;color:var(--gold2)">${t.note}</p>`;
   el.classList.add('show');
 }
+// 每日情報（intel_digest.py 產生，intel_feed.json）
+const INTEL_TAG = {'大師動向':'itag-guru','Burry追蹤':'itag-burry','策略發現':'itag-strat','觸發器':'itag-trig'};
+function escH(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function renderIntel(){
+  const el = document.getElementById('intelFeed');
+  const feed = DD.intel_data;
+  if(!feed || !feed.length){ el.innerHTML = '<p class="desc">今日暫無新情報。</p>'; return; }
+  const days = {};
+  feed.forEach(e=>{ (days[e.date] = days[e.date] || []).push(e); });
+  el.innerHTML = Object.keys(days).sort().reverse().map(d=>`
+    <div class="intel-day">${escH(d)}</div>
+    <div class="intel-grid">${days[d].map(e=>`
+      <div class="intel">
+        <span class="itag ${INTEL_TAG[e.tag]||''}">${escH(e.tag)}</span>
+        <h4>${escH(e.title)}</h4>
+        <p>${escH(e.summary)}</p>
+        ${e.key_numbers && e.key_numbers.length ? `<div class="kn">🔑 ${e.key_numbers.map(escH).join(' · ')}</div>` : ''}
+        ${e.link ? `<div class="src"><a href="${escH(e.link)}" target="_blank" rel="noopener">原文連結 ↗</a></div>` : ''}
+      </div>`).join('')}</div>`).join('');
+}
 
 fetch('data.json').then(r=>r.json()).then(D=>{
-  DD=D; renderHero(); renderLegs(); renderTriggers(); renderVlight(); renderPanic(); renderChart();
+  DD=D; renderHero(); renderLegs(); renderTriggers(); renderVlight(); renderPanic(); renderIntel(); renderChart();
 }).catch(e=>{ document.getElementById('nowNum').textContent='—'; });
 </script>
 </body>
