@@ -114,6 +114,11 @@
   .intel .src { font-size:12px; margin-top:6px; }
   .intel .src a { color:var(--mut); }
   @media(min-width:760px){ .intel-grid { grid-template-columns:1fr 1fr; } }
+  /* 策略龍虎榜 */
+  .lb-verdict { font-size:12px; font-weight:700; white-space:nowrap; }
+  .lb-v-green { color:#4ade80; } .lb-v-yellow { color:var(--gold2); } .lb-v-red { color:#f87171; } .lb-v-grey { color:var(--mut); }
+  .lb-table td:first-child { font-weight:700; }
+  @media (max-width:640px){ .lb-table { font-size:12px; } .lb-table th, .lb-table td { padding:8px 6px; } }
   @media (max-width:640px){ #chart{height:320px;} }
 </style>
 </head>
@@ -132,7 +137,8 @@
       <button class="tab" id="tabVal" onclick="setView('val')">純估值版</button>
     </div>
     <div><a class="jumplink" href="#panic">🎣 恐慌撈底系統 v1.0（互動講解）</a>
-    <a class="jumplink" href="#intel">📰 每日情報（中文摘要）</a></div>
+    <a class="jumplink" href="#intel">📰 每日情報（中文摘要）</a>
+    <a class="jumplink" href="#leaderboard">🏆 策略龍虎榜（回測結果）</a></div>
     <p class="sub" id="viewDesc" style="margin-top:10px">六條腿等權合成：估值、曲線、信用、恐慌、勞動、政策</p>
     <div class="bignum" id="nowNum">–</div>
     <div><span class="badge b-green" id="nowBadge">載入中</span></div>
@@ -234,6 +240,18 @@
     <p class="desc">每日四個掃描（大師動向／Burry追蹤／策略發現／觸發器）嘅中文摘要，最新在前。齋睇唔使撳。</p>
     <div id="intelFeed"><p class="desc">載入中…</p></div>
     <div class="warn" style="margin-top:18px">摘要由公開新聞／披露二次整理，唔係投資建議。原文連結如有附上，請自行核實。</div>
+  </section>
+
+  <section id="leaderboard">
+    <h2>🏆 策略龍虎榜 <span class="pill">回測結果</span></h2>
+    <p class="desc" id="lbMethod">載入中…</p>
+    <h3 class="sub">🟢 榜上有名（已驗證）</h3>
+    <div style="overflow-x:auto"><table class="lb-table" id="lbWinners"></table></div>
+    <h3 class="sub">🔴 驗證失敗／唔成立</h3>
+    <div style="overflow-x:auto"><table class="lb-table" id="lbLosers"></table></div>
+    <h3 class="sub">📌 兩樣唔喺表入面但要知</h3>
+    <div id="lbNotes"></div>
+    <div class="warn" style="margin-top:18px" id="lbDisclaimer"></div>
   </section>
 
   <section>
@@ -537,8 +555,37 @@ function renderIntel(){
       </div>`).join('')}</div>`).join('');
 }
 
+// 策略龍虎榜（build_leaderboard_json.py 由龍虎榜 MD 解析產生）
+function lbColor(v){
+  v = v || '';
+  if(v.indexOf('無證據') >= 0) return 'lb-v-red';
+  if(v.indexOf('未證實') >= 0 || v.indexOf('數據不足') >= 0) return 'lb-v-grey';
+  if(v.indexOf('有效') >= 0) return 'lb-v-green';
+  return 'lb-v-yellow';
+}
+function renderLeaderboard(){
+  const L = DD.leaderboard_data;
+  if(!L){ document.getElementById('lbMethod').textContent='龍虎榜數據載入中…'; return; }
+  document.getElementById('lbMethod').textContent =
+    '龍虎榜 ' + L.version + ' · 截至 ' + L.asof + ' · ' + L.method +
+    ' 榜上有名 ' + L.counts.winners + ' 條，打假 ' + L.counts.losers + ' 條。' + L.queue_note;
+  document.getElementById('lbWinners').innerHTML =
+    '<tr><th>策略</th><th>分類</th><th>回測期</th><th>關鍵數字</th><th>Verdict</th></tr>' +
+    L.winners.map(w=>'<tr><td>' + escH(w.name) + '</td><td>' + escH(w.cat) + '</td><td>' + escH(w.period) +
+      '</td><td>' + escH(w.key) + '</td><td><span class="lb-verdict ' + lbColor(w.verdict) + '">' + escH(w.verdict) + '</span></td></tr>').join('');
+  document.getElementById('lbLosers').innerHTML =
+    '<tr><th>策略／聲稱</th><th>關鍵數字</th><th>Verdict</th></tr>' +
+    L.losers.map(w=>'<tr><td>' + escH(w.name) + '</td><td>' + escH(w.key) +
+      '</td><td><span class="lb-verdict ' + lbColor(w.verdict) + '">' + escH(w.verdict) + '</span></td></tr>').join('');
+  document.getElementById('lbNotes').innerHTML = [L.panic, L.live_window].map(n=>
+    '<div class="valcard" style="margin-bottom:12px"><h3>' + escH(n.name) + '</h3>' +
+    '<p style="margin-top:8px;font-size:14px">' + escH(n.key) + '</p>' +
+    '<p style="margin-top:8px;font-size:14px;color:var(--gold2)">' + escH(n.note) + '</p></div>').join('');
+  document.getElementById('lbDisclaimer').textContent = L.disclaimer;
+}
+
 fetch('data.json').then(r=>r.json()).then(D=>{
-  DD=D; renderHero(); renderLegs(); renderTriggers(); renderVlight(); renderPanic(); renderIntel(); renderChart();
+  DD=D; renderHero(); renderLegs(); renderTriggers(); renderVlight(); renderPanic(); renderIntel(); renderLeaderboard(); renderChart();
 }).catch(e=>{ document.getElementById('nowNum').textContent='—'; });
 </script>
 </body>
