@@ -315,7 +315,7 @@ function setView(v){
   document.getElementById('tabSix').className='tab'+(v==='six'?' active':'');
   document.getElementById('tabVal').className='tab'+(v==='val'?' active':'');
   if(!DD) return;
-  renderHero(); renderLegs(); renderChart();
+  safeRender('renderHero', renderHero); safeRender('renderLegs', renderLegs); safeRender('renderChart', renderChart);
 }
 
 function renderHero(){
@@ -444,7 +444,6 @@ function renderVlight(){
     xAxis:{type:'category', data:V.daily.map(p=>p.d),
       axisLabel:{color:'#9a9a9a', formatter:v=>v.slice(0,7), interval:29}},
     yAxis:{type:'value', min:0.7, max:1.4, axisLabel:{color:'#9a9a9a'}, splitLine:{lineStyle:{color:'#222'}}},
-    visualMap:{show:false, dimension:1, pieces:[{lt:1.0,color:'#4ade80'},{gte:1.0,color:'#f87171'}]},
     series:[{name:'VIX/VIX3M', type:'line', data:V.daily.map(p=>[p.d,p.r]), showSymbol:false, lineStyle:{width:2},
       markLine:{silent:true, symbol:'none', label:{color:'#9a9a9a', formatter:'1.0 Backwardation線'},
         lineStyle:{color:'#555', type:'dashed'}, data:[{yAxis:1.0}]}}]
@@ -584,9 +583,11 @@ function renderLeaderboard(){
   document.getElementById('lbDisclaimer').textContent = L.disclaimer;
 }
 
-fetch('data.json').then(r=>r.json()).then(D=>{
-  DD=D; renderHero(); renderLegs(); renderTriggers(); renderVlight(); renderPanic(); renderIntel(); renderLeaderboard(); renderChart();
-}).catch(e=>{ document.getElementById('nowNum').textContent='—'; });
+function safeRender(name, fn){ try{ fn(); }catch(e){ console.error('render '+name+' failed:', e); } }
+fetch('data.json').then(r=>{ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); }).then(D=>{
+  DD=D;
+  [['renderHero',renderHero],['renderLegs',renderLegs],['renderTriggers',renderTriggers],['renderVlight',renderVlight],['renderPanic',renderPanic],['renderIntel',renderIntel],['renderLeaderboard',renderLeaderboard],['renderChart',renderChart]].forEach(function(s){ safeRender(s[0], s[1]); });
+}).catch(e=>{ document.getElementById('nowNum').textContent='—'; console.error('data load failed:', e); });
 </script>
 </body>
 </html>
